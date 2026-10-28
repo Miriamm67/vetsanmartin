@@ -6,11 +6,15 @@
   @csrf @if($u->id_usuario) @method('PUT') @endif
   <div class="row g-2">
     <div class="col-md-6"><label class="form-label">Usuario *</label>
-      <input name="nombre_usuario" class="form-control" value="{{ old('nombre_usuario',$u->nombre_usuario) }}" required></div>
-    <div class="col-md-6"><label class="form-label">Contraseña {{ $u->id_usuario ? '(vacía = no cambiar)' : '*' }}</label>
-      <input type="password" name="contrasena" class="form-control" {{ $u->id_usuario?'':'required' }}></div>
+      <input name="nombre_usuario" class="form-control" value="{{ old('nombre_usuario',$u->nombre_usuario) }}" maxlength="50" required></div>
+    @unless($u->id_usuario)
+    <div class="col-md-6"><label class="form-label">Contraseña *</label>
+      <input type="password" name="contrasena" class="form-control" minlength="6" required></div>
+    @else
+    <div class="col-12"><small class="text-muted">Para cambiar tu propia contraseña, usa el apartado «Mi contraseña».</small></div>
+    @endunless
     <div class="col-md-4"><label class="form-label">Rol *</label>
-      <select name="rol" class="form-select">
+      <select name="rol" class="form-select" required>
         <option value="admin" {{ old('rol',$u->rol)=='admin'?'selected':'' }}>admin</option>
         <option value="cliente" {{ old('rol',$u->rol)=='cliente'?'selected':'' }}>cliente</option>
       </select></div>
@@ -23,7 +27,7 @@
       </select></div>
     @if($u->id_usuario)
     <div class="col-md-4"><label class="form-label">Estado</label>
-      <select name="estado" class="form-select">
+      <select name="estado" class="form-select" required>
         <option {{ $u->estado=='activo'?'selected':'' }}>activo</option>
         <option {{ $u->estado=='inactivo'?'selected':'' }}>inactivo</option>
       </select></div>

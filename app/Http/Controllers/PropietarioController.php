@@ -14,9 +14,19 @@ class PropietarioController extends Controller
     public function create() { return view('propietarios.form', ['p' => new Propietario]); }
     public function store(Request $r)
     {
-        $r->validate(['nombre_completo'=>'required|max:120','telefono'=>'required|max:20']);
-        Propietario::create($r->only(['nombre_completo','telefono','direccion','zona','calle_av','numero','nro_registro']) + ['estado'=>'activo']);
-        return redirect()->route('admin.propietarios.index')->with('ok','Propietario registrado');
+    $r->validate(['nombre_completo'=>'required|max:120','telefono'=>'required|max:20']);
+    $p = Propietario::create(
+        $r->only(['nombre_completo','telefono','direccion','zona','calle_av','numero','nro_registro'])
+        + ['estado'=>'activo']
+    );
+
+    // N. Reg. automático (correlativo como el anillado) si se dejó vacío
+    if (!$p->nro_registro) {
+        $p->update(['nro_registro' => str_pad($p->id_propietario, 4, '0', STR_PAD_LEFT)]);
+    }
+
+    return redirect()->route('admin.propietarios.index')
+        ->with('ok','Propietario registrado (N. Reg. '.$p->nro_registro.')');
     }
     public function edit($id) { return view('propietarios.form', ['p' => Propietario::findOrFail($id)]); }
     public function update(Request $r, $id)

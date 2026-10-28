@@ -4,11 +4,20 @@
 <div class="row g-3">
 @forelse($mascotas as $m)
   <div class="col-md-4">
-    <div class="card h-100"><div class="card-body">
-      <h5>🐾 {{ $m->nombre }}</h5>
-      <p class="small text-muted mb-2">{{ $m->especie }} · {{ $m->raza ?? 'mestizo' }}</p>
-      <a href="{{ route('cliente.detalle',$m->id_mascota) }}" class="btn btn-outline-primary btn-sm w-100">Ver historial y vacunas</a>
-    </div></div>
+    <div class="card h-100">
+      @if($m->foto)
+        <img src="{{ asset($m->foto) }}" alt="Foto de {{ $m->nombre }}" class="card-img-top pet-photo">
+      @else
+        <div class="d-flex align-items-center justify-content-center bg-light text-primary" style="height:140px;">
+          <i class="bi bi-heart-pulse" style="font-size:3rem;"></i>
+        </div>
+      @endif
+      <div class="card-body">
+        <h5>🐾 {{ $m->nombre }}</h5>
+        <p class="small text-muted mb-2">{{ $m->especie }} · {{ $m->raza ?? 'mestizo' }}</p>
+        <a href="{{ route('cliente.detalle',$m->id_mascota) }}" class="btn btn-outline-primary btn-sm w-100">Ver historial y vacunas</a>
+      </div>
+    </div>
   </div>
 @empty
   <p class="text-muted">Aún no tienes mascotas registradas.</p>

@@ -4,7 +4,7 @@
   <h4>Mascotas</h4>
   <a href="{{ route('admin.mascotas.create') }}" class="btn btn-primary">+ Nueva</a>
 </div>
-<form class="row g-2 mb-3">
+<form class="row g-2 mb-3" enctype="multipart/form-data">
   <div class="col"><input name="q" value="{{ request('q') }}" class="form-control" placeholder="Mascota, dueño o raza..."></div>
   <div class="col-auto">
     <select name="especie" class="form-select">
@@ -27,7 +27,7 @@
       <td>{{ $m->propietario->nombre_completo }}</td>
       <td class="text-end">
         <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.mascotas.edit',$m->id_mascota) }}">Editar</a>
-        <form class="d-inline" method="POST" action="{{ route('admin.mascotas.destroy',$m->id_mascota) }}">
+        <form class="d-inline" method="POST" enctype="multipart/form-data" action="{{ route('admin.mascotas.destroy',$m->id_mascota) }}">
           @csrf @method('DELETE')
           <button class="btn btn-sm btn-outline-danger">Baja</button>
         </form>

@@ -1,5 +1,6 @@
 <?php
 namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,5 +14,15 @@ class DatabaseSeeder extends Seeder
             'rol' => 'admin',
             'estado' => 'activo',
         ]);
+
+        \App\Models\Veterinario::firstOrCreate(
+            ['id_usuario' => 1],
+            [
+                'nombre_completo' => 'Ismael Sacama Ramírez',
+                'nro_colegiado'   => '762',
+                'especialidad'    => 'Clínica de animales menores y mayores',
+                'estado'          => 'activo',
+            ]
+        );
     }
 }

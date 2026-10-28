@@ -12,7 +12,38 @@ class ReporteController extends Controller
     }
     public function historial($id)
     {
-        $m = Mascota::with(['propietario','consultas.tratamientos','consultas.metodos','vacunas'])->findOrFail($id);
-        return Pdf::loadView('pdf.historial', compact('m'))->setPaper('a4')->download("historial_{$m->nombre}.pdf");
+        $m = $this->mascotaConHistorial($id);
+
+        return $this->historialPdf($m)->download("historial_{$m->nombre}.pdf");
+    }
+
+    public function historialPreview($id)
+    {
+        $m = $this->mascotaConHistorial($id);
+
+        return view('mascotas.historial', compact('m'));
+    }
+
+    public function historialPdfPreview($id)
+    {
+        $m = $this->mascotaConHistorial($id);
+
+        return $this->historialPdf($m)->stream("historial_{$m->nombre}.pdf");
+    }
+
+    private function mascotaConHistorial($id): Mascota
+    {
+        return Mascota::with([
+            'propietario',
+            'consultas' => fn ($query) => $query
+                ->with(['veterinario', 'tratamientos', 'metodos', 'receta', 'adjuntos'])
+                ->orderByDesc('fecha_hora'),
+            'vacunas',
+        ])->findOrFail($id);
+    }
+
+    private function historialPdf(Mascota $m)
+    {
+        return Pdf::loadView('pdf.historial', compact('m'))->setPaper('a4');
     }
 }

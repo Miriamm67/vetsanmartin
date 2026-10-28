@@ -30,4 +30,8 @@ class Usuario extends Authenticatable
     {
         return $this->belongsTo(Propietario::class, 'id_propietario');
     }
+    public function veterinario()
+    {
+        return $this->hasOne(Veterinario::class, 'id_usuario', 'id_usuario');
+    }
 }

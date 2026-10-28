@@ -1,6 +1,8 @@
 <?php
 namespace App\Http\Controllers;
 use App\Models\Mascota; use App\Models\Propietario; use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use App\Models\Veterinario;
 
 class MascotaController extends Controller
 {
@@ -16,23 +18,91 @@ class MascotaController extends Controller
         return view('mascotas.index', compact('mascotas'));
     }
     public function create() { return view('mascotas.form', ['m'=>new Mascota,'propietarios'=>Propietario::activos()->get()]); }
-    public function store(Request $r)
+    public function store(Request $request)
     {
-        $r->validate(['id_propietario'=>'required|exists:propietarios,id_propietario','nombre'=>'required|max:80','especie'=>'required|in:perro,gato,ave,roedor']);
-        Mascota::create($r->only(['id_propietario','nombre','especie','raza','edad','fecha_nacimiento','sexo','color','senas_particulares']) + ['estado'=>'activo']);
-        return redirect()->route('admin.mascotas.index')->with('ok','Mascota registrada');
+        $data = $request->validate([
+            'id_propietario'     => 'required|exists:propietarios,id_propietario',
+            'nombre'             => 'required|string|max:80',
+            'especie'            => 'required|in:perro,gato,ave,roedor',
+            'raza'               => 'nullable|string|max:60',
+            'edad'               => 'nullable|integer|min:0|max:40',
+            'fecha_nacimiento'   => 'nullable|date',
+            'sexo'               => 'nullable|in:macho,hembra',
+            'color'              => 'nullable|string|max:40',
+            'senas_particulares' => 'nullable|string|max:200',
+            'foto'               => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+        ]);
+
+        if ($request->hasFile('foto')) {
+            $data['foto'] = $this->guardarFoto($request);
+        }
+
+        Mascota::create($data);
+        return redirect()->route('admin.mascotas.index')->with('ok', 'Mascota registrada correctamente.');
     }
-    public function show($id) { return view('mascotas.show', ['m'=>Mascota::with(['consultas.tratamientos','consultas.metodos','vacunas'])->findOrFail($id)]); }
-    public function edit($id) { return view('mascotas.form', ['m'=>Mascota::findOrFail($id),'propietarios'=>Propietario::activos()->get()]); }
-    public function update(Request $r, $id)
+       public function show($mascota)
     {
-        $r->validate(['nombre'=>'required|max:80','especie'=>'required|in:perro,gato,ave,roedor']);
-        Mascota::findOrFail($id)->update($r->only(['id_propietario','nombre','especie','raza','edad','fecha_nacimiento','sexo','color','senas_particulares']));
-        return redirect()->route('admin.mascotas.show',$id)->with('ok','Mascota actualizada');
+        $m = Mascota::with([
+            'propietario',
+            'consultas' => fn ($query) => $query
+                ->with(['tratamientos', 'veterinario', 'receta', 'metodos', 'adjuntos'])
+                ->orderByDesc('fecha_hora'),
+            'vacunas',
+            'adjuntos.consulta',
+            'adjuntos.usuario',
+        ])->findOrFail($mascota);
+
+        $veterinarios = \App\Models\Veterinario::activos()->orderBy('nombre_completo')->get();
+        return view('mascotas.show', compact('m', 'veterinarios'));
+    }
+    public function edit($id) { return view('mascotas.form', ['m'=>Mascota::findOrFail($id),'propietarios'=>Propietario::activos()->get()]); }
+    public function update(Request $request, $mascota)
+    {
+        $m = Mascota::findOrFail($mascota);
+        $data = $request->validate([
+            'id_propietario'     => 'required|exists:propietarios,id_propietario',
+            'nombre'             => 'required|string|max:80',
+            'especie'            => 'required|in:perro,gato,ave,roedor',
+            'raza'               => 'nullable|string|max:60',
+            'edad'               => 'nullable|integer|min:0|max:40',
+            'fecha_nacimiento'   => 'nullable|date',
+            'sexo'               => 'nullable|in:macho,hembra',
+            'color'              => 'nullable|string|max:40',
+            'senas_particulares' => 'nullable|string|max:200',
+            'foto'               => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+        ]);
+
+        if ($request->hasFile('foto')) {
+            if ($m->foto && file_exists(public_path($m->foto))) {
+                unlink(public_path($m->foto));
+            }
+            $data['foto'] = $this->guardarFoto($request);
+        }
+
+        $m->update($data);
+        return redirect()->route('admin.mascotas.show', $mascota)->with('ok', 'Mascota actualizada correctamente.');
     }
     public function destroy($id)
     {
         Mascota::findOrFail($id)->update(['estado'=>'inactivo']);
         return redirect()->route('admin.mascotas.index')->with('ok','Mascota dada de baja (lógica)');
+    }
+        /**
+     * Guarda la foto creando la carpeta si no existe.
+     * Compatible con hosting compartido (sin storage:link).
+     */
+    private function guardarFoto(Request $request): string
+    {
+        $destino = $this->uploadBase() . '/mascotas';
+        \Illuminate\Support\Facades\File::ensureDirectoryExists($destino);
+        $file   = $request->file('foto');
+        $nombre = 'mascota_' . time() . '.' . $file->getClientOriginalExtension();
+        $file->move($destino, $nombre);
+        return 'uploads/mascotas/' . $nombre;
+    }
+
+    private function uploadBase(): string
+    {
+        return env('UPLOAD_PATH', public_path('uploads'));
     }
 }

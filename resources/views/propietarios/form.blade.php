@@ -6,9 +6,9 @@
   @csrf @if($p->id_propietario) @method('PUT') @endif
   <div class="row g-2">
     <div class="col-md-6"><label class="form-label">Nombre y apellidos *</label>
-      <input name="nombre_completo" class="form-control" value="{{ old('nombre_completo',$p->nombre_completo) }}" required></div>
+      <input name="nombre_completo" class="form-control" value="{{ old('nombre_completo',$p->nombre_completo) }}" maxlength="120" required></div>
     <div class="col-md-3"><label class="form-label">N.° Cel. *</label>
-      <input name="telefono" class="form-control" value="{{ old('telefono',$p->telefono) }}" required></div>
+      <input name="telefono" class="form-control" value="{{ old('telefono',$p->telefono) }}" maxlength="20" required></div>
     <div class="col-md-3"><label class="form-label">N. Reg.</label>
       <input name="nro_registro" class="form-control" value="{{ old('nro_registro',$p->nro_registro) }}"></div>
     <div class="col-md-4"><label class="form-label">Zona</label>

@@ -11,7 +11,12 @@ class ClienteController extends Controller
     {
         $m = $this->misMascotas()->firstWhere('id_mascota', $id);
         abort_unless($m, 403);
-        $m->load(['vacunas','consultas.tratamientos']);
+        $m->load([
+            'vacunas',
+            'consultas' => fn ($query) => $query
+                ->with(['tratamientos', 'veterinario', 'receta', 'metodos', 'adjuntos'])
+                ->orderByDesc('fecha_hora'),
+        ]);
         return view('cliente.detalle', ['m'=>$m]);
     }
     public function descargarReceta($id)

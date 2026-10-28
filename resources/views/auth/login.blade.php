@@ -10,7 +10,7 @@
         @csrf
         <div class="mb-3">
           <label class="form-label">Usuario</label>
-          <input type="text" name="nombre_usuario" class="form-control" value="{{ old('nombre_usuario') }}" required autofocus>
+          <input type="text" name="nombre_usuario" class="form-control" value="{{ old('nombre_usuario') }}" maxlength="50" required autofocus>
         </div>
         <div class="mb-3">
           <label class="form-label">Contraseña</label>
